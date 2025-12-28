@@ -55,7 +55,7 @@ jobs:
         cpp = 'cl'
         ar = 'lib'
         strip = 'true'
-        pkgconfig = 'false'
+        pkg-config = 'false'
 
         [host_machine]
         system = 'windows'
@@ -78,7 +78,7 @@ jobs:
           --prefix=${{ github.workspace }}/install `
           -Dbuildtype=release `
           -Dplatforms=windows `
-          "-Dgallium-drivers=zink,swrast" `
+          "-Dgallium-drivers=zink,softpipe" `
           "-Dvulkan-drivers=" `
           -Dopengl=true `
           -Dgles1=enabled `
