@@ -1,0 +1,23 @@
+# Build directories
+builddir/
+build/
+install/
+mesa-src/
+
+# Archives
+*.zip
+*.tar.gz
+*.tar.xz
+
+# Cross files
+*-cross.txt
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.user
+
+# OS
+.DS_Store
+Thumbs.db

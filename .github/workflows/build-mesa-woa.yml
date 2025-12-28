@@ -1,0 +1,126 @@
+name: Build Mesa for Windows on ARM
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-windows-arm64:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+
+    - name: Checkout Mesa source
+      run: |
+        git clone --depth 1 https://gitlab.freedesktop.org/mesa/mesa.git mesa-src
+
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        architecture: 'x64'
+
+    - name: Install Meson and Ninja
+      run: |
+        python -m pip install --upgrade pip
+        pip install meson ninja
+
+    - name: Setup MSVC for ARM64
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: amd64_arm64
+
+    - name: Install dependencies
+      run: |
+        # Download and setup winflexbison
+        Invoke-WebRequest -Uri "https://github.com/lexxmark/winflexbison/releases/download/v2.5.25/win_flex_bison-2.5.25.zip" -OutFile "winflexbison.zip"
+        Expand-Archive -Path "winflexbison.zip" -DestinationPath "C:\winflexbison"
+        echo "C:\winflexbison" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+        # Download LLVM for ARM64 (if needed for better optimization)
+        # For now we'll use MSVC's built-in compiler
+
+    - name: Create cross-file for ARM64
+      run: |
+        @"
+        [binaries]
+        c = 'cl'
+        cpp = 'cl'
+        ar = 'lib'
+        strip = 'true'
+        pkgconfig = 'false'
+
+        [host_machine]
+        system = 'windows'
+        cpu_family = 'aarch64'
+        cpu = 'armv8'
+        endian = 'little'
+
+        [built-in options]
+        c_args = []
+        cpp_args = []
+        c_link_args = []
+        cpp_link_args = []
+        "@ | Out-File -FilePath "arm64-cross.txt" -Encoding utf8
+
+    - name: Configure Mesa with Meson
+      run: |
+        cd mesa-src
+        meson setup builddir `
+          --cross-file ../arm64-cross.txt `
+          --prefix=${{ github.workspace }}/install `
+          -Dbuildtype=release `
+          -Dplatforms=windows `
+          -Dgallium-drivers=zink,swrast `
+          -Dvulkan-drivers= `
+          -Dopengl=true `
+          -Dgles1=enabled `
+          -Dgles2=enabled `
+          -Dshared-glapi=enabled `
+          -Dzlib=enabled `
+          -Dllvm=disabled `
+          -Dshared-llvm=disabled `
+          -Dvalgrind=disabled `
+          -Dbuild-tests=false `
+          -Dosmesa=true
+      shell: pwsh
+
+    - name: Build Mesa
+      run: |
+        cd mesa-src
+        meson compile -C builddir
+      shell: pwsh
+
+    - name: Install Mesa
+      run: |
+        cd mesa-src
+        meson install -C builddir
+      shell: pwsh
+
+    - name: Package binaries
+      run: |
+        cd install
+        Compress-Archive -Path * -DestinationPath ../mesa-zink-windows-arm64.zip
+      shell: pwsh
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: mesa-zink-windows-arm64
+        path: mesa-zink-windows-arm64.zip
+        retention-days: 30
+
+    - name: Upload binaries as release asset (on tags)
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: mesa-zink-windows-arm64.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
