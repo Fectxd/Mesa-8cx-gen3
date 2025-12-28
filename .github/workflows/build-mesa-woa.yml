@@ -78,8 +78,8 @@ jobs:
           --prefix=${{ github.workspace }}/install `
           -Dbuildtype=release `
           -Dplatforms=windows `
-          -Dgallium-drivers=zink,swrast `
-          -Dvulkan-drivers= `
+          "-Dgallium-drivers=zink,swrast" `
+          "-Dvulkan-drivers=" `
           -Dopengl=true `
           -Dgles1=enabled `
           -Dgles2=enabled `
