@@ -80,16 +80,12 @@ jobs:
           -Dplatforms=windows `
           "-Dgallium-drivers=zink,softpipe" `
           "-Dvulkan-drivers=" `
-          -Dopengl=true `
           -Dgles1=enabled `
           -Dgles2=enabled `
-          -Dshared-glapi=enabled `
-          -Dzlib=enabled `
           -Dllvm=disabled `
           -Dshared-llvm=disabled `
           -Dvalgrind=disabled `
-          -Dbuild-tests=false `
-          -Dosmesa=true
+          -Dbuild-tests=false
       shell: pwsh
 
     - name: Build Mesa
