@@ -1,4 +1,4 @@
-# Mesa Zink for Windows on ARM (8cx Gen 3)
+# Mesa Zink for Windows on ARM
 
 This repository provides automated builds of Mesa with Zink driver for Windows on ARM devices, specifically optimized for Snapdragon 8cx Gen 3.
 
@@ -51,4 +51,3 @@ Mesa is licensed under the MIT License and other open-source licenses. See the [
 ## Credits
 
 - [Mesa3D](https://www.mesa3d.org/) - The Mesa 3D Graphics Library
-- Built for Snapdragon 8cx Gen 3 Windows on ARM devices
